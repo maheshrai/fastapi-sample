@@ -1,8 +1,8 @@
 # Electric Utility API
 
-A FastAPI-based REST API for electric utility operations including customer lookup, meter data, usage history, billing, and outage management.
+A FastAPI-based REST API for electric utility operations including customer lookup, meter data, usage history, billing, outage management, and work order crew management.
 
-Customer and outage services use Faker for mock data. Billing connects to Oracle Autonomous Database via wallet.
+All services currently use Faker for mock data. The work order service connects to Oracle Autonomous Database (Maximo) via wallet.
 
 ## Project Structure
 
@@ -15,17 +15,20 @@ fastapi-sample/
 ├── models/
 │   ├── customer.py                # Customer, Meter, UsageRecord
 │   ├── billing.py                 # Bill, Payment, PaymentRequest
-│   └── outage.py                  # Outage, OutageReport
+│   ├── outage.py                  # Outage, OutageReport
+│   └── workorder.py               # Crew
 │
 ├── routers/
 │   ├── customers.py               # /customers routes
 │   ├── billing.py                 # /customers/{id}/bills, /payments routes
-│   └── outages.py                 # /outages routes
+│   ├── outages.py                 # /outages routes
+│   └── workorders.py              # /workorders routes
 │
 └── services/
     ├── customer_service.py        # Faker-based mock
-    ├── billing_service.py         # Oracle DB
-    └── outage_service.py          # Faker-based mock
+    ├── billing_service.py         # Faker-based mock
+    ├── outage_service.py          # Faker-based mock
+    └── workorder_service.py       # Oracle DB (Maximo)
 ```
 
 ## Setup
@@ -55,6 +58,8 @@ ORACLE_WALLET_PASSWORD=          # Leave blank for SSO wallets
 ```
 
 The wallet directory should be the unzipped contents of the wallet zip downloaded from the OCI console. It must contain `cwallet.sso`, `tnsnames.ora`, and `sqlnet.ora`.
+
+The Oracle connection pool initializes lazily — the app starts without a DB connection and connects on the first request that requires it.
 
 ### 3. Run
 
@@ -89,11 +94,17 @@ Interactive docs at `http://localhost:8000/docs`
 | `GET` | `/outages/{outage_id}` | Get outage details |
 | `POST` | `/outages` | Report a new outage |
 
+### Work Orders
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/workorders/crews` | Get all crews from Maximo (`MAXIMO.AMCREW`) |
+
 ## Mock Data
 
-Customer and outage endpoints return Faker-generated data seeded by account/outage ID, so responses are consistent across restarts.
+Customer, billing, and outage endpoints return Faker-generated data seeded by account/outage ID, so responses are consistent across restarts.
 
 - 20 pre-seeded customers: `ELEC-000001` through `ELEC-000020`
+- 12 months of bills per customer, seeded by account number
 - 10 pre-seeded outages: `OUT-00001` through `OUT-00010`
 
 ## Adding a New Domain
