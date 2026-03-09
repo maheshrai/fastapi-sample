@@ -10,7 +10,7 @@ async def _ensure_pool():
     if pool is None:
         # python-oracledb thin mode supports Autonomous DB wallet natively —
         # no Oracle Client installation required.
-        pool = await oracledb.create_pool_async(
+        pool = oracledb.create_pool_async(
             user=settings.db_user,
             password=settings.db_password,
             dsn=settings.db_dsn,
